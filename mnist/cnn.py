@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Input, concatenate
@@ -9,7 +10,7 @@ import tf2onnx.convert
 
 batch_size = 128
 num_classes = 10
-epochs = 10
+epochs = 5
 
 img_rows, img_cols = 28, 28
 
@@ -57,6 +58,11 @@ model.fit(x_train, y_train,
           validation_data=(x_test, y_test))
 
 onnx_model, _ = tf2onnx.convert.from_keras(model)
+
+zeros = np.full((1, 28, 28, 1), 0.2)
+
+pred = model.predict(zeros)
+print(pred)
 
 onnx.save(onnx_model, 'mnist_cnn.onnx')
 

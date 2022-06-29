@@ -11,6 +11,7 @@ void Inference(){
     const char* input_names[] = {"input_1"};
     const char* output_names[] = {"dense_1"};
     std::array<float, 28*28> input_image{};
+    input_image.fill(0.2);
     std::array<float, 10> results{};
     std::array<int64_t, 4> input_shape{1, 28, 28, 1};
     std::array<int64_t, 2> output_shape{1, 10};
