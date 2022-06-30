@@ -18,7 +18,6 @@ void Inference_xgb(){
 
     auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
     Ort::Value input_tensor = Ort::Value::CreateTensor<float>(allocator_info, input.data(), input.size(), input_shape.data(), input_shape.size());
-    //Ort::Value output_tensor = Ort::Value::CreateTensor<float>(allocator_info, results.data(), results.size(), output_shape.data(), output_shape.size());
     
     auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
     float* intarr = output_tensor.front().GetTensorMutableData<float>();

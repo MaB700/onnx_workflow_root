@@ -1,4 +1,6 @@
-
+#if !defined(__CLING__)
+#include "TROOT.h"
+#endif
 
 void Run_cnn(){
     
@@ -8,6 +10,5 @@ void Run_cnn(){
     gROOT->ProcessLine("#include \"Inference_cnn.C\"");
     gROOT->ProcessLine("Inference_cnn()");
     
-    return 0;
 }
 

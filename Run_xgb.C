@@ -1,4 +1,6 @@
-
+#if !defined(__CLING__)
+#include "TROOT.h"
+#endif
 
 void Run_xgb(){
     
@@ -8,6 +10,5 @@ void Run_xgb(){
     gROOT->ProcessLine("#include \"Inference_xgb.C\"");
     gROOT->ProcessLine("Inference_xgb()");
     
-    return 0;
 }
 
