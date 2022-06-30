@@ -5,7 +5,7 @@
 
 void Inference_xgb(){
     
-    Ort::Env env{OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "mnist_cnn"};
+    Ort::Env env{OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "xgb"};
     Ort::Session session(env, "./xgboost_boston.onnx", Ort::SessionOptions(nullptr));
 
     const char* input_names[] = {"float_input"};
