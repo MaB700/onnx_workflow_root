@@ -4,7 +4,6 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten, Input, concatenate
 from tensorflow.keras import Model
 
-import keras2onnx
 import onnx
 import tf2onnx.convert
 
@@ -59,12 +58,9 @@ model.fit(x_train, y_train,
 
 onnx_model, _ = tf2onnx.convert.from_keras(model)
 
-zeros = np.full((1, 28, 28, 1), 0.2)
+test_in = np.full((1, 28, 28, 1), 0.2)
 
-pred = model.predict(zeros)
+pred = model.predict(test_in)
 print(pred)
 
-onnx.save(onnx_model, 'mnist_cnn.onnx')
-
-# keras2onnx.convert_keras(model, name="CNN_ROOT")
-
+onnx.save(onnx_model, './mnist_cnn.onnx')
