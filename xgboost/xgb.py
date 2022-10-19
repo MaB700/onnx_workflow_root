@@ -18,7 +18,13 @@ model.fit(xtrain, ytrain)
 test_in = np.full((1, 13), 0.2)
 print(model.predict(test_in))
 
+outtest = model.predict(xtest[0:100])
+
 initial_types = [('float_input', FloatTensorType([None, xtrain.shape[1]]))]
 onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_types)
 onnxmltools.utils.save_model(onnx_model, './xgboost_boston.onnx')
+
+np.savetxt("input_xgb.csv", xtest[0:100], delimiter=",")
+np.savetxt("output_xgb.csv", outtest, delimiter=",")
+
 

@@ -1,0 +1,6 @@
+Tensor is flattend in input_cnn.csv from ( , 28, 28) -> ( , 28*28) row-major !
+Example for a single input matrix:
+
+a b c    ->   a b c d e f g h i
+d e f 
+g h i

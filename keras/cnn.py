@@ -63,4 +63,9 @@ test_in = np.full((1, 28, 28, 1), 0.2)
 pred = model.predict(test_in)
 print(pred)
 
+outtest = model.predict(x_test[0:100])
+
 onnx.save(onnx_model, './mnist_cnn.onnx')
+
+np.savetxt("input_cnn.csv", tf.reshape(x_test[0:100,:,:,0], [100, -1]), delimiter=",")
+np.savetxt("output_cnn.csv", outtest[0:100], delimiter=",")
