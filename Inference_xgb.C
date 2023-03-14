@@ -1,12 +1,17 @@
 #include <iostream>
+#include <chrono>
+#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 #if !defined(__CLING__)
-#include "onnxruntime_cxx_api.h"
 #endif
 
 void Inference_xgb(){
     
     Ort::Env env{OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "xgb"};
-    Ort::Session session(env, "./xgboost_boston.onnx", Ort::SessionOptions(nullptr));
+    Ort::SessionOptions* sessionOptions = new Ort::SessionOptions();
+	sessionOptions->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+	sessionOptions->SetIntraOpNumThreads(1);
+    sessionOptions->SetInterOpNumThreads(1);
+    Ort::Session session(env, "./xgboost_boston.onnx", *sessionOptions);
 
     const char* input_names[] = {"float_input"};
     const char* output_names[] = {"variable"};
@@ -18,12 +23,19 @@ void Inference_xgb(){
 
     auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
     Ort::Value input_tensor = Ort::Value::CreateTensor<float>(allocator_info, input.data(), input.size(), input_shape.data(), input_shape.size());
-    
-    auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
-    float* intarr = output_tensor.front().GetTensorMutableData<float>();
-    std::vector<float> output_tensor_values {intarr, intarr+1};
-    for(int i{}; i < output_tensor_values.size(); i++){
-        std::cout << output_tensor_values[i] << std::endl;
+    //timer
+    auto begin = std::chrono::high_resolution_clock::now();
+    for(int i{}; i < 10000; i++){
+        auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Time taken by function: "
+         << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / (1000.0*10000.0)
+         << " ms" << std::endl;
+    // float* intarr = output_tensor.front().GetTensorMutableData<float>();
+    // std::vector<float> output_tensor_values {intarr, intarr+1};
+    // for(int i{}; i < output_tensor_values.size(); i++){
+    //     std::cout << output_tensor_values[i] << std::endl;
+    // }
 
 }

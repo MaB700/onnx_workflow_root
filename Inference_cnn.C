@@ -1,12 +1,17 @@
 #include <iostream>
+#include <chrono>
+#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 #if !defined(__CLING__)
-#include "onnxruntime_cxx_api.h"
 #endif
 
 void Inference_cnn(){
     
     Ort::Env env{OrtLoggingLevel::ORT_LOGGING_LEVEL_WARNING, "mnist_cnn"};
-    Ort::Session session(env, "./mnist_cnn.onnx", Ort::SessionOptions(nullptr));
+    Ort::SessionOptions* sessionOptions = new Ort::SessionOptions();
+	sessionOptions->SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
+	sessionOptions->SetIntraOpNumThreads(1);
+    sessionOptions->SetInterOpNumThreads(1);
+    Ort::Session session(env, "./mnist_cnn.onnx", *sessionOptions);
 
     const char* input_names[] = {"input_1"};
     const char* output_names[] = {"dense_1"};
@@ -18,12 +23,19 @@ void Inference_cnn(){
 
     auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
     Ort::Value input_tensor = Ort::Value::CreateTensor<float>(allocator_info, input_image.data(), input_image.size(), input_shape.data(), input_shape.size());
-    
-    auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
-    float* intarr = output_tensor.front().GetTensorMutableData<float>();
-    std::vector<float> output_tensor_values {intarr, intarr + 10};
-    for(int i{}; i < output_tensor_values.size(); i++){
-        std::cout << output_tensor_values[i] << std::endl;
+    auto begin = std::chrono::high_resolution_clock::now();
+    for(int i{}; i < 10000; i++){
+        auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Time taken by function: "
+         << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / (1000.0*10000.0)
+         << " ms" << std::endl;
+    // auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
+    // float* intarr = output_tensor.front().GetTensorMutableData<float>();
+    // std::vector<float> output_tensor_values {intarr, intarr + 10};
+    // for(int i{}; i < output_tensor_values.size(); i++){
+    //     std::cout << output_tensor_values[i] << std::endl;
+    // }
 
 }

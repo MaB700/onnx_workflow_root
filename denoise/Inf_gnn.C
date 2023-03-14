@@ -10,10 +10,10 @@
 
 float run_task(int intra, int inter, ExecutionMode mode);
 
-int Inf(){
+int Inf_gnn(){
   
-  std::vector<int> intra{1, 4};//
-  std::vector<int> inter{1, 4};//
+  std::vector<int> intra{1, 2, 4, 8, 16};//
+  std::vector<int> inter{1, 2, 4, 8, 16};//
   std::vector<ExecutionMode> mode{ORT_SEQUENTIAL};
   // loop over all combinations of intra, inter and mode and print the best 5 results
   std::vector<std::tuple<float, int, int, ExecutionMode>> results;
@@ -43,34 +43,31 @@ float run_task(int intra, int inter, ExecutionMode mode){
 	session_options.SetInterOpNumThreads(inter);
   session_options.SetExecutionMode(mode);
   //session_options.EnableProfiling("denoise");
-  Ort::Session session(env, "./model.onnx", session_options);
+  Ort::Session session(env, "./gnn_5_16.onnx", session_options);
 
-  // const char* input_names[] = {"input_1"};
-  // const char* output_names[] = {"conv2d_6"};
-  const char* input_names[] = {"input"};
-  const char* output_names[] = {"output"};
-  std::array<float, 72*32> input_image = input_denoise::single_input;
-  //input_image.fill(0.2);
-  // std::array<int64_t, 4> input_shape{1, 72, 32, 1};
-  // std::array<int64_t, 4> output_shape{1, 72, 32, 1};
-  std::array<int64_t, 4> input_shape{1, 1, 72, 32};
-  std::array<int64_t, 4> output_shape{1, 1, 72, 32};
-
-  auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
-  Ort::Value input_tensor = Ort::Value::CreateTensor<float>(allocator_info, input_image.data(), input_image.size(), input_shape.data(), input_shape.size());
+  std::vector<const char*> input_names = {"nodes", "edge_index"};
+  std::vector<const char*> output_names = {"output"};
   
+  std::array<float, 50*3> node_input; 
+  std::generate(node_input.begin(), node_input.end(), [](){return static_cast <float> (rand()) / static_cast <float> (RAND_MAX);});
+  std::array<int64_t, 2*100> edge_input;
+  std::generate(edge_input.begin(), edge_input.end(), [](){return rand() % 30;});
+
+  std::array<int64_t, 2> node_shape{50, 3};
+  std::array<int64_t, 2> edge_shape{2, 100};
+  std::array<int64_t, 2> output_shape{50, 1};
+
+  auto allocator_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+
+  std::vector<Ort::Value> inputs;
+  inputs.push_back(Ort::Value::CreateTensor<float>(allocator_info, node_input.data(), node_input.size(), node_shape.data(), node_shape.size()));
+  inputs.push_back(Ort::Value::CreateTensor<int64_t>(allocator_info, edge_input.data(), edge_input.size(), edge_shape.data(), edge_shape.size()));
+
   auto begin = std::chrono::high_resolution_clock::now();
   
-  
-  // input_image = input_denoise::single_input;
-  // auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
-  // float* intarr = output_tensor.front().GetTensorMutableData<float>();
-  // std::vector<float> output_tensor_values {intarr, intarr + 72*32};
-
-  input_image = input_denoise::single_input;
   for(int i{}; i < 1000; i++){
     //input_image.fill(0.0);
-    auto output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names, &input_tensor, 1, output_names, 1);
+    std::vector<Ort::Value> output_tensor = session.Run(Ort::RunOptions{nullptr}, input_names.data(), inputs.data(), input_names.size(), output_names.data(), output_names.size());
     //float* intarr = output_tensor.front().GetTensorMutableData<float>();
     //std::vector<float> output_tensor_values {intarr, intarr + 72*32};
   }
